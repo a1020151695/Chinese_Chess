@@ -1,0 +1,1496 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+</head>
+<script src="axios.js"></script>
+<style>
+    #board{
+        position: absolute;
+        left: 500px;
+        top: 50px;
+    }
+    #controller{
+        position: absolute;
+        left: 500px;
+        top: 50px;
+    }
+    #hq:hover {
+    background: #3399ff;
+    }
+    #hq{
+        position: absolute;
+        left: 550px;
+        top:570px;
+        width:100px;
+     text-align:center;
+     line-height:100%;
+     padding:0.3em;
+     font:16px Arial,sans-serif bold;
+     font-style:normal;
+     text-decoration:none;
+     margin:2px;
+     vertical-align:text-bottom;
+     zoom:1;
+     outline:none;
+     font-size-adjust:none;
+     font-stretch:normal;
+     border-radius:50px;
+     box-shadow:0px 1px 2px rgba(0, 0, 0, 0.2);
+     text-shadow:0px 1px 1px rgba(0,0,0,0.3);
+     
+     color:#0c0c0c;
+     border:0.2px solid #268DFF;
+     background-repeat:repeat;
+     background-size:auto;
+     background-origin:padding-box;
+     background-clip:padding-box;
+     background-color:#c1d9f1;
+     background: linear-gradient(to bottom, #eeeff9 0%,#2299ff 100%);
+    }
+    #blackfirst:hover {
+    background: #3399ff;
+    }
+    #blackfirst{
+        position: absolute;
+        left: 750px;
+        top:570px;
+        width:100px;
+     text-align:center;
+     line-height:100%;
+     padding:0.3em;
+     font:16px Arial,sans-serif bold;
+     font-style:normal;
+     text-decoration:none;
+     margin:2px;
+     vertical-align:text-bottom;
+     zoom:1;
+     outline:none;
+     font-size-adjust:none;
+     font-stretch:normal;
+     border-radius:50px;
+     box-shadow:0px 1px 2px rgba(0, 0, 0, 0.2);
+     text-shadow:0px 1px 1px rgba(0,0,0,0.3);
+     
+     color:#0c0c0c;
+     border:0.2px solid #268DFF;
+     background-repeat:repeat;
+     background-size:auto;
+     background-origin:padding-box;
+     background-clip:padding-box;
+     background-color:#c1d9f1;
+     background: linear-gradient(to bottom, #eeeff9 0%,#2299ff 100%);
+    }
+</style>
+<body background="bj.jpg">
+<center>
+    <div class="board">
+        <canvas id="board" width="450px" height="500px"></canvas>
+        <canvas id="controller" width="450px" height="500px"></canvas>
+    </div>
+    <button id="hq" type="button">悔棋</button>
+    <button id="blackfirst" onclick="blackFirst()">黑棋先走</button>
+</center>
+
+</body>
+
+</html>
+<script type="text/javascript">
+
+    //获取棋盘画布
+    var board=document.getElementById("board");
+    //初始化画布
+    board.style.border="1px solid gray";
+    board.style.backgroundColor="rgb(222, 184, 135)";
+    //得到绘图对象
+    var context=board.getContext('2d');
+    //棋盘大小
+    var row=10;
+    var col=9;
+
+    //画直线函数
+    function line (x1,y1,x2,y2){
+        context.beginPath();
+        context.lineWidth=2;
+        context.moveTo(x1,y1);
+        context.lineTo(x2,y2);
+        context.strokeStyle="black";
+        context.stroke();
+        context.closePath();
+    };
+
+    //画横线函数
+    function drawRows(){
+        for(var i=0;i<row;i++){
+            line(25,25+50*i,425,25+50*i);
+        }
+    };
+
+    //画竖线函数
+    function drawCols(){
+        for(var i=0;i<this.col;i++){
+            line(25+i*50,25,25+i*50,475);
+        }
+        //清除多画的部分
+        context.clearRect(26,226,398,48);
+    };
+
+
+
+    //画斜线函数
+    function drawBias(){
+        line(175,25,275,125);
+        line(175,125,275,25);
+        line(175,375,275,475);
+        line(175,475,275,375);
+    };
+
+
+    //画中心点
+    function center(x,y){
+        if(x<col-1){
+            line(x*50+25+5,y*50+25-15,x*50+25+5,y*50+25-5);
+            line(x*50+25+5,y*50+25-5,x*50+25+15,y*50+25-5);
+            line(x*50+25+5,y*50+25+5,x*50+25+15,y*50+25+5);
+            line(x*50+25+5,y*50+25+5,x*50+25+5,y*50+25+15);
+        }
+        if(x>0){
+            line(x*50+25-5,y*50+25-15,x*50+25-5,y*50+25-5);
+            line(x*50+25-5,y*50+25+5,x*50+25-5,y*50+25+15);
+            line(x*50+25-15,y*50+25-5,x*50+25-5,y*50+25-5);
+            line(x*50+25-15,y*50+25+5,x*50+25-5,y*50+25+5);
+        }
+    };
+
+    //画兵卒炮的起始位置中心点函数
+    function drawCenter(){
+        center(1,2);
+        center(7,2);
+        center(0,3);
+        center(2,3);
+        center(4,3);
+        center(6,3);
+        center(8,3);
+        center(1,7);
+        center(7,7);
+        center(0,6);
+        center(2,6);
+        center(4,6);
+        center(6,6);
+        center(8,6);
+    };
+
+    //画棋盘
+    function draw() {
+        drawRows()
+        drawCols()
+        drawBias()
+        drawCenter()
+    }
+
+    draw()
+
+
+    //------------------------------------------------------------
+
+    var controller = document.getElementById("controller");
+    context = controller.getContext('2d');
+    //画棋子函数
+    function drawPiece(x,y,pieceName,pieceType){
+        context.beginPath();
+        context.arc(x*50+25,y*50+25,21,0,2*Math.PI);
+        context.fillStyle=pieceType;
+        context.fill();
+        context.font="26px bold 宋体";
+        if(pieceType=="red")
+            context.fillStyle="yellow";
+        else if(pieceType=="black"){
+            context.fillStyle="white";
+        }
+        context.textAlign="center";
+        context.textBaseline="middle";
+        context.fillText(pieceName,x*50+25,y*50+25);
+        context.closePath();
+    };
+
+
+    function drawChess() {
+        drawPiece(0,0,"车","black")
+        drawPiece(1,0,"马","black")
+        drawPiece(2,0,"象","black")
+        drawPiece(3,0,"士","black")
+        drawPiece(8,0,"车","black")
+        drawPiece(7,0,"马","black")
+        drawPiece(6,0,"象","black")
+        drawPiece(5,0,"士","black")
+        drawPiece(4,0,"将","black")
+        drawPiece(0,3,"卒","black")
+        drawPiece(2,3,"卒","black")
+        drawPiece(4,3,"卒","black")
+        drawPiece(6,3,"卒","black")
+        drawPiece(8,3,"卒","black")
+        drawPiece(1,2,"炮","black")
+        drawPiece(7,2,"炮","black")
+
+        drawPiece(0,9,"车","red")
+        drawPiece(1,9,"马","red")
+        drawPiece(2,9,"象","red")
+        drawPiece(3,9,"士","red")
+        drawPiece(8,9,"车","red")
+        drawPiece(7,9,"马","red")
+        drawPiece(6,9,"象","red")
+        drawPiece(5,9,"士","red")
+        drawPiece(4,9,"帅","red")
+        drawPiece(0,6,"兵","red")
+        drawPiece(2,6,"兵","red")
+        drawPiece(4,6,"兵","red")
+        drawPiece(6,6,"兵","red")
+        drawPiece(8,6,"兵","red")
+        drawPiece(1,7,"炮","red")
+        drawPiece(7,7,"炮","red")
+    }
+    drawChess()
+
+    //删除棋子
+    function clearChess(x,y) {
+        x = x*50+25;
+        y = y*50+25;
+        context.clearRect(x-21,y-21,42,42)  //x,y,width,height
+    }
+
+    var chessStatus = new Array();
+    var isTurnToBlack = false;
+    var isRule = false;
+    var isSecondClick = false;
+    var isBlackDead = false;
+    var isRedDead = false;
+
+
+    function iniChessStatus(){
+        for(let i=0;i<9;i++){        //一维长度为9,对应棋盘x坐标
+            chessStatus[i] = new Array();
+            for(let j=0;j<10;j++){    //二维长度为10,对应棋盘y坐标
+
+                if((i==0&&j==0)||(i==8&&j==0)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"车",
+                        
+                        
+                    }
+                }
+                else if((i==0&&j==9)||(i==8&&j==9)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"车",
+                        
+                        
+                    }
+                }
+                else if((i==1&&j==0)||(i==7&&j==0)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"马",
+                        
+                        
+                    }
+                }
+                else if((i==1&&j==9)||(i==7&&j==9)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"马",
+                        
+                        
+                    }
+                }
+                else if((i==2&&j==0)||(i==6&&j==0)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"象",
+                       
+                         
+                    }
+                }
+                else if((i==2&&j==9)||(i==6&&j==9)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"象",
+                        
+                        
+                    }
+                }
+                else if((i==3&&j==0)||(i==5&&j==0)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"士",
+                       
+                        
+                    }
+                }
+                else if((i==3&&j==9)||(i==5&&j==9)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"士",
+                        
+                        
+                    }
+                }
+                else if(i==4&&j==0){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"将",
+                        
+                        
+                    }
+                }
+                else if(i==4&&j==9){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"帅",
+                        
+                        
+                    }
+                }
+                else if((i==1&&j==2)||(i==7&&j==2)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"炮",
+                        
+                        
+                    }
+                }
+                else if((i==1&&j==7)||(i==7&&j==7)){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"炮",
+                       
+                       
+                    }
+                }
+                else if((i%2==0)&&j==3){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"black",
+                        chessType:"卒",
+                       
+                        
+                    }
+                }
+                else if((i%2==0)&&j==6){
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:true,
+                        chessColor:"red",
+                        chessType:"兵",
+                      
+                        
+                    }
+                }
+                else {
+                    chessStatus[i][j] = {
+                        x:i,
+                        y:j,
+                        existChess:false,
+                        chessColor:null,
+                        chessType:null,
+                        
+                        
+                    }
+                }
+            }
+        }
+    }
+
+
+    var oldClick = {};
+    var newClick = {};
+    var blackmovelist= new Array();
+    var redmovelist= new Array();
+    
+    var lastblack={};
+    var lastred={};
+    hq.addEventListener('click',function(e){
+        if(redmovelist.length!=0)
+        {
+            //红棋返回上一步
+        lastred=redmovelist[redmovelist.length-1];
+        redmovelist.splice(redmovelist.length-1,1)
+        clearChess(lastred.nowx, lastred.nowy);
+        drawPiece(lastred.oldx, lastred.oldy, lastred.type, lastred.color);
+        //更新棋盘状态
+        chessStatus[lastred.oldx][lastred.oldy] = {
+            x: lastred.oldx,
+            y: lastred.oldy,
+            existChess: true,
+            chessColor: lastred.color,
+            chessType: lastred.type
+        };
+        
+        if(blackBeEat.length!=0&&blackBeEat[blackBeEat.length-1].x==lastred.nowx&&blackBeEat[blackBeEat.length-1].y==lastred.nowy)
+        {
+            chessStatus[lastred.nowx][lastred.nowy] = {
+            x: lastred.nowx,
+            y: lastred.nowy,
+            existChess: true,
+            chessColor: "black",
+            chessType: blackBeEat[blackBeEat.length-1].type
+        };
+        chessStatusReal[blackBeEat[blackBeEat.length-1].index].x=lastred.nowx;
+        chessStatusReal[blackBeEat[blackBeEat.length-1].index].y=lastred.nowy;
+        blackBeEat.splice(blackBeEat.length-1,1);
+        drawPiece(lastred.nowx,lastred.nowy,chessStatus[lastred.nowx][lastred.nowy].chessType,chessStatus[lastred.nowx][lastred.nowy].chessColor);
+        }
+        else{
+            chessStatus[lastred.nowx][lastred.nowy] = {
+            x: lastred.nowx,
+            y: lastred.nowy,
+            existChess: false,
+            chessColor: null,
+            chessType: null
+        };
+        }
+        //更新棋子位置状态
+        regretupdateChessStatusReal(lastred.oldx,lastred.oldy,lastred.nowx,lastred.nowy);
+        
+
+        //黑棋返回上一步
+        lastblack=blackmovelist[blackmovelist.length-1];
+        blackmovelist.splice(blackmovelist.length-1,1);
+        if(lastred.nowx==lastblack.nowx&&lastred.nowy==lastblack.nowy)
+        {
+         //不清理
+        }
+        else{
+            clearChess(lastblack.nowx, lastblack.nowy);
+        }
+        
+        drawPiece(lastblack.oldx, lastblack.oldy, lastblack.type, lastblack.color);
+        //更新棋盘状态
+        chessStatus[lastblack.oldx][lastblack.oldy] = {
+            x: lastblack.oldx,
+            y: lastblack.oldy,
+            existChess: true,
+            chessColor: lastblack.color,
+            chessType: lastblack.type,
+            
+        };
+
+        if(lastred.nowx==lastblack.nowx&&lastred.nowy==lastblack.nowy)
+        {
+
+        }
+        else if(redBeEat.length!=0&&redkBeEat[redBeEat.length-1].x==lastblack.nowx&&redBeEat[redBeEat.length-1].y==lastblack.nowy)
+        {
+            chessStatus[lastblack.nowx][lastblack.nowy] = {
+            x: lastblack.nowx,
+            y: lastblack.nowy,
+            existChess: true,
+            chessColor: "red",
+            chessType: redBeEat[redBeEat.length-1].type
+        };
+        chessStatusReal[redBeEat[redBeEat.length-1].index].x=lastblack.nowx;
+        chessStatusReal[redBeEat[redBeEat.length-1].index].y=lastblack.nowy;
+        redBeEat.splice(redBeEat.length-1,1);
+        drawPiece(lastblack.nowx, lastblack.nowy, chessStatus[lastblack.nowx][lastblack.nowy].chessType, chessStatus[lastblack.nowx][lastblack.nowy].chessColor);
+        }
+        else{
+            chessStatus[lastblack.nowx][lastblack.nowy] = {
+            x: lastblack.nowx,
+            y: lastblack.nowy,
+            existChess: false,
+            chessColor: null,
+            chessType: null
+        };
+        }
+        //更新棋子位置状态
+        regretupdateChessStatusReal(lastblack.oldx,lastblack.oldy,lastblack.nowx,lastblack.nowy);
+        lastblack = null;
+        lastred= null;
+        console.log("redmovelist.length:"+redmovelist.length)
+        console.log("blackmovelist.length:"+blackmovelist.length)
+        console.log(get64());
+        }
+       
+        
+    })
+    //设置棋子画布的监听事件，监听点击
+    controller.addEventListener('click',function (e) {
+        let x = Math.round((e.layerX - 25) / 50);
+        let y = Math.round((e.layerY - 25) / 50);
+        console.log(x + "," + y)
+
+        if (isSecondClick == false) {
+            oldClick = chessStatus[x][y];
+            newClick = null;
+            isSecondClick = true;
+        } else {
+            newClick = chessStatus[x][y];
+            redmovelist[redmovelist.length]={
+               oldx:oldClick.x,
+               oldy:oldClick.y,
+               nowx:newClick.x,
+               nowy:newClick.y,
+               type:oldClick.chessType,
+               color:oldClick.chessColor
+            };
+            if (oldClick.existChess == true) {
+                if (oldClick.chessColor == "red") {
+                    if (isTurnToBlack == false) {
+                        if (newClick.chessColor != "red") {
+                            switch (oldClick.chessType) {
+                                case "车":
+                                    if (isCheRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                                        
+                                        chessType: oldClick.chessType
+                                        
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                        chessType: null,
+                                        
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                  
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+                                case "马":
+                                    if (isMaRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                        
+                                        chessType: oldClick.chessType
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                        chessType: null
+                                        
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                    
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+                                case "象":
+                                    if (isXiangRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                                        
+                                        chessType: oldClick.chessType
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                       
+                                        chessType: null
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                    
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+                                case "士":
+                                    if (isShiRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                                        
+                                        chessType: oldClick.chessType
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                        
+                                        chessType: null
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                    
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+                                case "将":case "帅":
+                                    if (isJiangRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                                        
+                                        chessType: oldClick.chessType
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                        
+                                        chessType: null
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                    
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+                                case "炮":
+                                    if (isPaoRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                                        
+                                        chessType: oldClick.chessType
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                        
+                                        chessType: null
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                    
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+                                case "兵":case "卒":
+                                    if (isBingRule(oldClick, newClick) == false) {
+                                        break;
+                                    }
+                                    //还要套一层判断规则
+                                    clearChess(oldClick.x, oldClick.y);
+                                    drawPiece(newClick.x, newClick.y, oldClick.chessType, oldClick.chessColor);
+                                    //更新棋盘状态
+                                    chessStatus[newClick.x][newClick.y] = {
+                                        x: newClick.x,
+                                        y: newClick.y,
+                                        existChess: true,
+                                        chessColor: oldClick.chessColor,
+                                       
+                                        chessType: oldClick.chessType
+                                    };
+                                    chessStatus[oldClick.x][oldClick.y] = {
+                                        x: oldClick.x,
+                                        y: oldClick.y,
+                                        existChess: false,
+                                        chessColor: null,
+                                        
+                                        chessType: null
+                                    };
+                                    //更新棋子位置状态
+                                    updateChessStatusReal(oldClick.x,oldClick.y,newClick.x,newClick.y);
+                                    if (newClick.chessType == "将") {
+                                        alert("红棋赢了!")
+                                    };
+                                    
+                                    oldClick = null;
+                                    newClick = null;
+                                    isTurnToBlack = true;
+                                    break;
+
+                            }
+
+                        }
+                    }
+                }
+            }
+            isSecondClick = false;
+        }
+    })
+
+    // "车" 的行棋规则
+    function isCheRule(oldStatus,newStatus) {
+            let x_old = oldStatus.x;
+            let y_old = oldStatus.y;
+            let x_new = newStatus.x;
+            let y_new = newStatus.y;
+            let min_x = x_old<x_new?x_old:x_new;
+            let min_y = y_old<y_new?y_old:y_new;
+            //车只有在x坐标或y坐标相同时才能移动
+            if(y_old==y_new){
+                if(Math.abs(x_new-x_old)==1){   //如果差距为1，则直接返回true
+                    return true;
+                }
+                for(let i=min_x+1;i<min_x+Math.abs(x_new-x_old);i++){  //如果差距大于1，要判断中途是否有子在挡住
+                    if(chessStatus[i][y_old].existChess==true){
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else if(x_old==x_new){
+                if(Math.abs(y_new-y_old)==1){
+                    return true;
+                }
+                for(let i=min_y+1;i<min_y+Math.abs(y_new-y_old);i++){
+                    if(chessStatus[x_old][i].existChess==true){
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            return false;
+        }
+
+    // "马" 的行棋规则
+    function isMaRule(oldStatus,newStatus) {
+            let x_old = oldStatus.x;
+            let y_old = oldStatus.y;
+            let x_new = newStatus.x;
+            let y_new = newStatus.y;
+            let min_x = x_old < x_new ? x_old : x_new;
+            let min_y = y_old < y_new ? y_old : y_new;
+
+            if(Math.abs(x_new-x_old)==2&&Math.abs(y_new-y_old)==1){  //判断是否走“曰”
+                if(x_old==0){  //判断是否蹩马腿
+                    if(chessStatus[x_old+1][y_old].existChess==false){
+                        return true;
+                    }
+                    return false;
+                }
+                else if(x_old==8){
+                    if(chessStatus[x_old-1][y_old].existChess==false){
+                        return true;
+                    }
+                    return false;
+                }
+                else {
+                    if(x_new<x_old){
+                        if(chessStatus[x_old-1][y_old].existChess==false){
+                            return true;
+                        }
+                        return false;
+                    }
+                    if(x_new>x_old){
+                        if(chessStatus[x_old+1][y_old].existChess==false){
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            }
+            else if(Math.abs(x_new-x_old)==1&&Math.abs(y_new-y_old)==2){  //判断是否走“日”
+                if(y_old==0){
+                    if(chessStatus[x_old][y_old+1].existChess==false){
+                        return true;
+                    }
+                    return false;
+                }
+                else if(y_old==9){
+                    if(chessStatus[x_old][y_old-1].existChess==false){
+                        return true;
+                    }
+                    return false;
+                }
+                else {
+                    if(y_new<y_old){
+                        if(chessStatus[x_old][y_old-1].existChess==false){
+                            return true;
+                        }
+                        return false;
+                    }
+                    if(y_new>y_old){
+                        if(chessStatus[x_old][y_old+1].existChess==false){
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+    // "象" 的行棋规则
+    function isXiangRule(oldStatus,newStatus) {
+            let x_old = oldStatus.x;
+            let y_old = oldStatus.y;
+            let x_new = newStatus.x;
+            let y_new = newStatus.y;
+            let min_x = x_old < x_new ? x_old : x_new;
+            let min_y = y_old < y_new ? y_old : y_new;
+            //红棋\黑棋不能越界
+            if(oldStatus.chessColor=="red"){
+                if(y_new<5)return false;
+            }
+            else if(oldStatus.chessColor=="black"){
+                if(y_new>4)return false;
+            }
+            //判断是否走“田”
+            if(oldStatus.chessColor=="red"){
+                if(Math.abs(x_new-x_old)==2&&Math.abs(y_new-y_old)==2){
+                    if((x_new==0&&y_new==7)||(x_new==2&&y_new==5)||(x_new==2&&y_new==9)||(x_new==4&&y_new==7)||
+                        (x_new==6&&y_new==5)||(x_new==6&&y_new==9)||(x_new==8&&y_new==7)){
+                        if(x_new<x_old&&y_new<y_old){  //判断是否挡住“象心”
+                            if(chessStatus[x_old-1][y_old-1].existChess==false){
+                                return true;
+                            }
+                        }
+                        else if(x_new>x_old&&y_new<y_old){
+                            if(chessStatus[x_old+1][y_old-1].existChess==false){
+                                return true;
+                            }
+                        }
+                        else if(x_new<x_old&&y_new>y_old){
+                            if(chessStatus[x_old-1][y_old+1].existChess==false){
+                                return true;
+                            }
+                        }
+                        else if(x_new>x_old&&y_new>y_old){
+                            if(chessStatus[x_old+1][y_old+1].existChess==false){
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+            else if(oldStatus.chessColor=="black"){
+                if(Math.abs(x_new-x_old)==2&&Math.abs(y_new-y_old)==2){
+                    if((x_new==0&&y_new==2)||(x_new==2&&y_new==0)||(x_new==2&&y_new==4)||(x_new==4&&y_new==2)||
+                        (x_new==6&&y_new==0)||(x_new==6&&y_new==4)||(x_new==8&&y_new==2)){
+                        if(x_new<x_old&&y_new<y_old){  //判断是否挡住“象心”
+                            if(chessStatus[x_old-1][y_old-1].existChess==false){
+                                return true;
+                            }
+                        }
+                        else if(x_new>x_old&&y_new<y_old){
+                            if(chessStatus[x_old+1][y_old-1].existChess==false){
+                                return true;
+                            }
+                        }
+                        else if(x_new<x_old&&y_new>y_old){
+                            if(chessStatus[x_old-1][y_old+1].existChess==false){
+                                return true;
+                            }
+                        }
+                        else if(x_new>x_old&&y_new>y_old){
+                            if(chessStatus[x_old+1][y_old+1].existChess==false){
+                                return true;
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            return false;
+        }
+
+    // "士" 的行棋规则
+    function isShiRule(oldStatus,newStatus) {
+        let x_old = oldStatus.x;
+        let y_old = oldStatus.y;
+        let x_new = newStatus.x;
+        let y_new = newStatus.y;
+        let min_x = x_old < x_new ? x_old : x_new;
+        let min_y = y_old < y_new ? y_old : y_new;
+
+        if(oldStatus.chessColor=="red"){
+            if(Math.abs(x_old-x_new)==1 && Math.abs(y_old-y_new)==1){
+                if((x_new==3 && y_new==9)||(x_new==5 && y_new==9)||(x_new==4 && y_new==8)||(x_new==3 && y_new==7)
+                    ||(x_new==5 && y_new==7)){
+                    return true;
+                }
+            }
+        }
+        else if(oldStatus.chessColor=="black"){
+            if(Math.abs(x_old-x_new)==1 && Math.abs(y_old-y_new)==1){
+                if((x_new==3 && y_new==0)||(x_new==5 && y_new==0)||(x_new==4 && y_new==1)||(x_new==3 && y_new==2)
+                    ||(x_new==5 && y_new==2)){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // "将" 的行棋规则
+    function isJiangRule(oldStatus,newStatus) {
+        let x_old = oldStatus.x;
+        let y_old = oldStatus.y;
+        let x_new = newStatus.x;
+        let y_new = newStatus.y;
+        let min_x = x_old < x_new ? x_old : x_new;
+        let min_y = y_old < y_new ? y_old : y_new;
+
+
+        if(oldStatus.chessColor=="red"){
+            if(Math.abs(x_old-x_new)==1 && y_new==y_old){  //横着走
+                if((x_new==3 && y_new==9)||(x_new==4 && y_new==9)||(x_new==5 && y_new==9)||(x_new==3 && y_new==8)
+                    ||(x_new==4 && y_new==8)||(x_new==5 && y_new==8)||(x_new==3 && y_new==7)||(x_new==4 && y_new==7)
+                    ||(x_new==5 && y_new==7)){
+                    return true;
+                }
+            }
+            else if(Math.abs(y_old-y_new)==1 && x_new==x_old){  //竖着走
+                if((x_new==3 && y_new==9)||(x_new==4 && y_new==9)||(x_new==5 && y_new==9)||(x_new==3 && y_new==8)
+                    ||(x_new==4 && y_new==8)||(x_new==5 && y_new==8)||(x_new==3 && y_new==7)||(x_new==4 && y_new==7)
+                    ||(x_new==5 && y_new==7)){
+                    return true;
+                }
+            }
+        }
+        else if(oldStatus.chessColor=="black"){
+            if(Math.abs(x_old-x_new)==1 && y_new==y_old){
+                if((x_new==3 && y_new==0)||(x_new==4 && y_new==0)||(x_new==5 && y_new==0)||(x_new==3 && y_new==1)
+                    ||(x_new==4 && y_new==1)||(x_new==5 && y_new==1)||(x_new==3 && y_new==2)||(x_new==4 && y_new==2)
+                    ||(x_new==5 && y_new==2)){
+                    return true;
+                }
+            }
+            else if(Math.abs(y_old-y_new)==1 && x_new==x_old){
+                if((x_new==3 && y_new==0)||(x_new==4 && y_new==0)||(x_new==5 && y_new==0)||(x_new==3 && y_new==1)
+                    ||(x_new==4 && y_new==1)||(x_new==5 && y_new==1)||(x_new==3 && y_new==2)||(x_new==4 && y_new==2)
+                    ||(x_new==5 && y_new==2)){
+                    return true;
+                }
+            }
+        }
+
+        //判断飞将条件
+        if(oldStatus.chessColor=="red" && Math.abs(y_old-y_new)>0 && x_new==x_old){
+            for(let i=y_old-1;i>=0;i--){
+                if(chessStatus[x_old][i].existChess==true && chessStatus[x_old][i].chessType!="将"){
+                    return false;
+                }
+                if(chessStatus[x_old][i].existChess==true && chessStatus[x_old][i].chessColor=="black"
+                    && chessStatus[x_old][i].chessType=="将"){
+                    return true;
+                }
+            }
+        }
+        else if(oldStatus.chessColor=="black" && Math.abs(y_old-y_new)>0 && x_new==x_old){
+            for(let j=y_old+1;i<=9;i++){
+                if(chessStatus[x_old][j].existChess==true && chessStatus[x_old][j].chessType!="帅"){
+                    return false;
+                }
+                if(chessStatus[x_old][j].existChess==true && chessStatus[x_old][j].chessColor=="red"
+                    && chessStatus[x_old][j].chessType=="帅"){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // "炮" 的行棋规则
+    function isPaoRule(oldStatus,newStatus) {
+        let x_old = oldStatus.x;
+        let y_old = oldStatus.y;
+        let x_new = newStatus.x;
+        let y_new = newStatus.y;
+        let min_x = x_old < x_new ? x_old : x_new;
+        let min_y = y_old < y_new ? y_old : y_new;
+
+        if(newStatus.existChess==false){  //如果 着棋位置 没有棋子，则行棋规则和 “车” 相同
+            //炮只有在x坐标或y坐标相同时才能移动
+            if(y_old==y_new){
+                if(Math.abs(x_new-x_old)==1){   //如果差距为1，则直接返回true
+                    return true;
+                }
+                for(let i=min_x+1;i<min_x+Math.abs(x_new-x_old);i++){  //如果差距大于1，要判断中途是否有子在挡住
+                    if(chessStatus[i][y_old].existChess==true){
+                        return false;
+                    }
+                }
+                return true;
+            }
+            else if(x_old==x_new){
+                if(Math.abs(y_new-y_old)==1){
+                    return true;
+                }
+                for(let i=min_y+1;i<min_y+Math.abs(y_new-y_old);i++){
+                    if(chessStatus[x_old][i].existChess==true){
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        else if(newStatus.existChess==true){  //如果 着棋位置 存在棋子，则重新制定行棋规则
+            if((oldStatus.chessColor=="red" && newStatus.chessColor=="black")||
+                (oldStatus.chessColor=="black" && newStatus.chessColor=="red")){
+                if(y_old==y_new){  //如果 炮横着走
+                    if(Math.abs(x_new-x_old)==1){   //如果差距为1，则肯定没有隔一个棋子，直接返回false
+                        return false;
+                    }
+                    let chessCount = 0;
+                    for(let i=min_x+1;i<min_x+Math.abs(x_new-x_old);i++){  //如果差距大于1，要判断中途有几个子在挡住
+                        if(chessStatus[i][y_old].existChess==true){
+                            chessCount = chessCount + 1;
+                        }
+                    }
+                    if(chessCount==1){
+                        return true;
+                    }
+                    return false;
+                }
+                else if(x_old==x_new){  //如果 炮竖着走
+                    if(Math.abs(y_new-y_old)==1){   //如果差距为1，则肯定没有隔一个棋子，直接返回false
+                        return false;
+                    }
+                    let chessCount = 0;
+                    for(let i=min_y+1;i<min_y+Math.abs(y_new-y_old);i++){  //如果差距大于1，要判断中途有几个子在挡住
+                        if(chessStatus[x_old][i].existChess==true){
+                            chessCount = chessCount +1;
+                        }
+                    }
+                    if(chessCount==1){
+                        return true;
+                    }
+                    return false;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // "兵" 的行棋规则
+    function isBingRule(oldStatus,newStatus) {
+        let x_old = oldStatus.x;
+        let y_old = oldStatus.y;
+        let x_new = newStatus.x;
+        let y_new = newStatus.y;
+        let min_x = x_old < x_new ? x_old : x_new;
+        let min_y = y_old < y_new ? y_old : y_new;
+
+        if(oldStatus.chessColor=="red"){
+            if(y_new>=5){  //兵没有过河
+                if(y_new==y_old-1 && x_new==x_old){
+                    return true;
+                }
+            }
+            else if(y_new<5){  //兵过河了
+                if((y_new==y_old-1 && x_new==x_old)||
+                    (Math.abs(x_old-x_new)==1 && y_new==y_old)){
+                    return true;
+                }
+            }
+        }
+        else if(oldStatus.chessColor=="black"){
+            if(y_new<=4){  //兵没有过河
+                if(y_new==y_old+1 && x_new==x_old){
+                    return true;
+                }
+            }
+            else if(y_new>4){  //兵过河了
+                if((y_new==y_old+1 && x_new==x_old)||
+                    (Math.abs(x_old-x_new)==1 && y_new==y_old)){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    //32位数组，表示棋子状态
+    var chessStatusReal = new Array();
+    function iniChessStatusReal() {
+        for(let i=0;i<32;i++) {  //代表32个棋子
+            chessStatusReal[i] = {
+                x:9,
+                y:9
+            };
+        }
+        //红棋初始化
+        chessStatusReal[0].x = 0;
+        chessStatusReal[0].y = 9;
+        chessStatusReal[1].x = 1;
+        chessStatusReal[1].y = 9;
+        chessStatusReal[2].x = 2;
+        chessStatusReal[2].y = 9;
+        chessStatusReal[3].x = 3;
+        chessStatusReal[3].y = 9;
+        chessStatusReal[4].x = 4;
+        chessStatusReal[4].y = 9;
+        chessStatusReal[5].x = 5;
+        chessStatusReal[5].y = 9;
+        chessStatusReal[6].x = 6;
+        chessStatusReal[6].y = 9;
+        chessStatusReal[7].x = 7;
+        chessStatusReal[7].y = 9;
+        chessStatusReal[8].x = 8;
+        chessStatusReal[8].y = 9;
+        chessStatusReal[9].x = 1;
+        chessStatusReal[9].y = 7;
+        chessStatusReal[10].x = 7;
+        chessStatusReal[10].y = 7;
+        chessStatusReal[11].x = 0;
+        chessStatusReal[11].y = 6;
+        chessStatusReal[12].x = 2;
+        chessStatusReal[12].y = 6;
+        chessStatusReal[13].x = 4;
+        chessStatusReal[13].y = 6;
+        chessStatusReal[14].x = 6;
+        chessStatusReal[14].y = 6;
+        chessStatusReal[15].x = 8;
+        chessStatusReal[15].y = 6;
+        //黑棋初始化
+        chessStatusReal[16].x = 0;
+        chessStatusReal[16].y = 0;
+        chessStatusReal[17].x = 1;
+        chessStatusReal[17].y = 0;
+        chessStatusReal[18].x = 2;
+        chessStatusReal[18].y = 0;
+        chessStatusReal[19].x = 3;
+        chessStatusReal[19].y = 0;
+        chessStatusReal[20].x = 4;
+        chessStatusReal[20].y = 0;
+        chessStatusReal[21].x = 5;
+        chessStatusReal[21].y = 0;
+        chessStatusReal[22].x = 6;
+        chessStatusReal[22].y = 0;
+        chessStatusReal[23].x = 7;
+        chessStatusReal[23].y = 0;
+        chessStatusReal[24].x = 8;
+        chessStatusReal[24].y = 0;
+        chessStatusReal[25].x = 1;
+        chessStatusReal[25].y = 2;
+        chessStatusReal[26].x = 7;
+        chessStatusReal[26].y = 2;
+        chessStatusReal[27].x = 0;
+        chessStatusReal[27].y = 3;
+        chessStatusReal[28].x = 2;
+        chessStatusReal[28].y = 3;
+        chessStatusReal[29].x = 4;
+        chessStatusReal[29].y = 3;
+        chessStatusReal[30].x = 6;
+        chessStatusReal[30].y = 3;
+        chessStatusReal[31].x = 8;
+        chessStatusReal[31].y = 3;
+    }
+
+
+    //悔棋后更新32位棋子位置数组
+    function regretupdateChessStatusReal(old_x,old_y,new_x,new_y) {
+        
+        for(let j=0;j<32;j++){
+            if(chessStatusReal[j].x==new_x&&chessStatusReal[j].y==new_y){
+                chessStatusReal[j].x=old_x;
+                chessStatusReal[j].y=old_y;
+                
+            }
+        }
+    }
+    var blackBeEat=new Array();
+    var redBeEat=new Array();
+    var chesstype=["车","马","象","士","帅","士","象","马","车","炮","炮","兵","兵","兵","兵","兵","车","马","象","士","将","士","象","马","车","炮","炮","卒","卒","卒","卒","卒"];
+    //更新32位棋子位置数组
+    function updateChessStatusReal(old_x,old_y,new_x,new_y) {
+        for(let i=0;i<32;i++){
+            if (chessStatusReal[i].x==new_x&&chessStatusReal[i].y==new_y){
+                chessStatusReal[i].x=9;
+                chessStatusReal[i].y=9;
+                if(i<=15)
+                {
+                    redBeEat[redBeEat.length]={
+                      index:i,
+                      x:new_x,
+                      y:new_y,
+                      type:chesstype[i]
+                    };
+                }
+                else{
+                    blackBeEat[blackBeEat.length]={
+                      index:i,
+                      x:new_x,
+                      y:new_y,
+                      type:chesstype[i]
+                    };
+                }
+            }
+        }
+        for(let j=0;j<32;j++){
+            if(chessStatusReal[j].x==old_x&&chessStatusReal[j].y==old_y){
+                chessStatusReal[j].x=new_x;
+                chessStatusReal[j].y=new_y;
+            }
+        }
+    }
+
+    //得到64位数字
+    function get64() {
+        let str='';
+        for(let i=0;i<32;i++){
+            str=str+chessStatusReal[i].x+chessStatusReal[i].y;
+        }
+        return str;
+    }
+
+
+
+
+    var blackOldPosition = {
+        x:null,
+        y:null
+    };
+    var blackNewPosition = {
+        x:null,
+        y:null
+    };
+
+    var isBlackFirst = false;
+    //设置间隔函数，每间隔一秒监听isTurnToBlack变量是否变为true,如果为true，则发送axios请求到后端，黑棋走棋
+    var requestFlag=1
+    setInterval(async function(){
+        if(isTurnToBlack == true){
+            console.log(get64());
+            //console.log(boardStatusToChessStatusReal(chessStatus));
+            let url = "http://localhost:5000/suggest/";
+            if(isBlackFirst==true){
+                url = url + get64() + "/2";
+            }
+            else {
+                url = url + get64() + "/1";
+            }
+            //发送axios请求
+            if(requestFlag==1){
+            	requestFlag=0
+            await axios.get(url)
+                .then(function(res) {
+                	requestFlag=1
+                    if(res.data[0].move=="9999"){
+                        alert("绝杀!")
+                    }
+                    console.log("already get data");
+                    blackOldPosition.x = res.data[0].move.substring(0,1);
+                    blackOldPosition.y = res.data[0].move.substring(1,2);
+                    blackNewPosition.x = res.data[0].move.substring(2,3);
+                    blackNewPosition.y = res.data[0].move.substring(3,4);
+                    console.log("black:"+blackOldPosition.x+","+blackOldPosition.y+" to "
+                    +blackNewPosition.x+","+blackNewPosition.y);
+                    //把黑棋的移动存入blackmovelist用于悔棋
+                    blackmovelist[blackmovelist.length]={
+                        oldx:blackOldPosition.x,
+                        oldy:blackOldPosition.y,
+                        nowx:blackNewPosition.x,
+                        nowy:blackNewPosition.y,
+                        type:chessStatus[blackOldPosition.x][blackOldPosition.y].chessType,
+                        color:chessStatus[blackOldPosition.x][blackOldPosition.y].chessColor
+                       };
+                    //删除棋子和画棋子
+                    clearChess(blackOldPosition.x, blackOldPosition.y);
+                    drawPiece(blackNewPosition.x, blackNewPosition.y,
+                        chessStatus[blackOldPosition.x][blackOldPosition.y].chessType,
+                        chessStatus[blackOldPosition.x][blackOldPosition.y].chessColor);
+
+
+                    if (chessStatus[blackNewPosition.x][blackNewPosition.y].chessType=="帅"&&
+                    	chessStatus[blackNewPosition.x][blackNewPosition.y].
+                    	chessColor=="red") {
+                        alert("黑棋赢了!")
+                    };
+                    //更新棋盘状态
+                   
+                    chessStatus[blackNewPosition.x][blackNewPosition.y] = {
+                        x: parseInt(blackNewPosition.x),
+                        y: parseInt(blackNewPosition.y),
+                        existChess: true,
+                        chessColor: chessStatus[blackOldPosition.x][blackOldPosition.y].chessColor,
+                        chessType: chessStatus[blackOldPosition.x][blackOldPosition.y].chessType
+                    };
+                   
+                    chessStatus[blackOldPosition.x][blackOldPosition.y] = {
+                        x: parseInt(blackOldPosition.x),
+                        y: parseInt(blackOldPosition.y),
+                        existChess: false,
+                        chessColor: null,
+                        
+                        chessType: null
+                    };
+                    //更新32位数组棋子位置状态
+                    updateChessStatusReal(blackOldPosition.x,blackOldPosition.y,blackNewPosition.x,blackNewPosition.y);
+                    console.log(get64());
+
+                    isTurnToBlack = false;
+                });
+            }
+
+            //isTurnToBlack = false;
+        }
+    }, 1000);
+
+
+    //用于console走棋
+    function go(str) {
+        let x_old = str.substring(0,1);
+        let y_old = str.substring(1,2);
+        let x_new = str.substring(2,3);
+        let y_new = str.substring(3,4);
+                    //删除棋子和画棋子
+                    clearChess(x_old, y_old);
+                    drawPiece(x_new, y_new,
+                        chessStatus[x_old][y_old].chessType,
+                        chessStatus[x_old][y_old].chessColor);
+                    //更新棋盘状态
+                    
+                    chessStatus[x_new][y_new] = {
+                        x: parseInt(x_new),
+                        y: parseInt(y_new),
+                        existChess: true,
+                        chessColor: chessStatus[x_old][y_old].chessColor,
+                        
+                        chessType: chessStatus[x_old][y_old].chessType
+                    
+                    };
+                    
+                    chessStatus[x_old][y_old] = {
+                        x: parseInt(x_old),
+                        y: parseInt(y_old),
+                        existChess: false,
+                        chessColor: null,
+                        lastchess:chessStatus[x_old][y_old].chessType,
+                        chessType: null
+                    };
+                    //更新32位数组棋子位置状态
+                    updateChessStatusReal(x_old,y_old,x_new,y_new);
+                    console.log(get64());
+                    isTurnToBlack = true;
+    }
+
+    window.onload = function(){
+　　　　 iniChessStatusReal();
+        iniChessStatus();
+　　}
+
+    function blackFirst() {
+        isBlackFirst=true;
+        isTurnToBlack=true;
+    }
+
+</script>
